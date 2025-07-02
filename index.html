@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Designer Skill Detection</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .demo-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .demo-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .demo-subtitle {
+            font-size: 1rem;
+            color: #00ff88;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .scan-target {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 450px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-target:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+
+        .target-content {
+            padding: 40px 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .designer-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #00ff88, #00ffff);
+            border-radius: 50%;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(0, 255, 136, 0.5);
+        }
+
+        .designer-avatar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="35" r="15" fill="%23000" opacity="0.7"/><path d="M20 80 Q20 65 35 65 L65 65 Q80 65 80 80 L80 90 L20 90 Z" fill="%23000" opacity="0.7"/></svg>') center/60% no-repeat;
+            z-index: 2;
+        }
+
+        /* Human photo placeholder - replace this with actual photo */
+        .designer-avatar.has-photo {
+            background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .designer-avatar.has-photo::before {
+            display: none;
+        }
+
+        .avatar-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .target-text {
+            font-size: 1.3rem;
+            color: #00ff88;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .target-subtext {
+            font-size: 0.9rem;
+            color: #00ffff;
+            margin-bottom: 30px;
+            opacity: 0.7;
+        }
+
+        /* Skills Container */
+        .skills-container {
+            width: 100%;
+            text-align: left;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .skills-header {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            color: #ff0080;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .skill-item {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #00ff88;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8) translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .skill-item.revealed {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .skill-item:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Scanning Effects */
+        .scan-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.3) 1px, transparent 1px);
+            background-size: 25px 25px;
+            z-index: 1;
+        }
+
+        .scan-beam {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                rgba(0, 255, 255, 0.1) 25%,
+                rgba(0, 255, 255, 0.8) 50%,
+                rgba(0, 255, 255, 0.1) 75%,
+                transparent 100%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scan-reticle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .reticle-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ff0080;
+        }
+
+        .reticle-corner.top-left {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .reticle-corner.top-right {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .reticle-corner.bottom-left {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+        }
+
+        .reticle-corner.bottom-right {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Control Button */
+        .scan-button {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 255, 0.1));
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 15px 30px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 30px auto;
+            display: block;
+            border-radius: 5px;
+        }
+
+        .scan-button:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 255, 0.2));
+            border-color: #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .scan-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-display {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1rem;
+            color: #00ffff;
+            margin-top: 20px;
+        }
+
+        .status-display::before {
+            content: '>>> ';
+            color: #00ff88;
+        }
+
+        /* Animations */
+        @keyframes grid-pulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes scan-beam {
+            0% { left: -100%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { left: 100%; opacity: 0; }
+        }
+
+        @keyframes reticle-lock {
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.3) rotate(0deg); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.3) rotate(180deg); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1) rotate(360deg); 
+            }
+        }
+
+        @keyframes avatar-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.8); }
+        }
+
+        @keyframes ring-scan {
+            0% { 
+                border-color: transparent; 
+                opacity: 0; 
+                transform: scale(1); 
+            }
+            25% { 
+                border-color: #ff0080; 
+                opacity: 1; 
+                transform: scale(1.1); 
+            }
+            75% { 
+                border-color: #00ffff; 
+                opacity: 1; 
+                transform: scale(1.2); 
+            }
+            100% { 
+                border-color: transparent; 
+                opacity: 0; 
+                transform: scale(1.3); 
+            }
+        }
+
+        @keyframes neural-glitch {
+            0%, 100% { transform: translate(0); filter: hue-rotate(0deg); }
+            20% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+            40% { transform: translate(-2px, -2px); filter: hue-rotate(180deg); }
+            60% { transform: translate(2px, 2px); filter: hue-rotate(270deg); }
+            80% { transform: translate(2px, -2px); filter: hue-rotate(360deg); }
+        }
+
+        @keyframes skills-container-reveal {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scanning State */
+        .scan-target.scanning .scan-grid {
+            opacity: 1;
+            animation: grid-pulse 0.5s infinite ease-in-out;
+        }
+
+        .scan-target.scanning .scan-beam {
+            animation: scan-beam 2.5s ease-in-out;
+        }
+
+        .scan-target.scanning .scan-reticle {
+            animation: reticle-lock 1.5s ease-out 1s forwards;
+        }
+
+        .scan-target.scanning .designer-avatar {
+            animation: avatar-pulse 1s infinite 1.5s, neural-glitch 0.3s infinite 3s;
+        }
+
+        .scan-target.scanning .avatar-ring {
+            animation: ring-scan 2s ease-in-out 1.5s infinite;
+        }
+
+        .scan-target.scanning .skills-container {
+            animation: skills-container-reveal 0.8s ease-out 3s forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .scan-target {
+                height: 500px;
+            }
+            
+            .designer-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+            
+            .target-text {
+                font-size: 1.1rem;
+            }
+            
+            .skills-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .demo-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">Skill Detection System</h1>
+        <p class="demo-subtitle">// NEURAL PATTERN RECOGNITION ACTIVE //</p>
+        
+        <div class="scan-target" id="scanTarget">
+            <!-- Scanning Effects -->
+            <div class="scan-grid"></div>
+            <div class="scan-beam"></div>
+            
+            <!-- Targeting Reticle -->
+            <div class="scan-reticle">
+                <div class="reticle-corner top-left"></div>
+                <div class="reticle-corner top-right"></div>
+                <div class="reticle-corner bottom-left"></div>
+                <div class="reticle-corner bottom-right"></div>
+            </div>
+            
+            <!-- Target Content -->
+            <div class="target-content">
+                <div class="designer-avatar has-photo">
+                    <div class="avatar-ring"></div>
+                </div>
+                <div class="target-text">
+                    Product Designer
+                </div>
+                <div class="target-subtext">
+                    Click to detect skills
+                </div>
+                
+                <!-- Skills Container -->
+                <div class="skills-container" id="skillsContainer">
+                    <div class="skills-header">Skills Detected</div>
+                    <div class="skills-grid">
+                        <div class="skill-item">UX Research</div>
+                        <div class="skill-item">UI Design</div>
+                        <div class="skill-item">Prototyping</div>
+                        <div class="skill-item">User Testing</div>
+                        <div class="skill-item">Design Systems</div>
+                        <div class="skill-item">Product Strategy</div>
+                        <div class="skill-item">Wireframing</div>
+                        <div class="skill-item">Collaboration</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="scan-button" id="scanButton" onclick="startScan()">
+            Detect Skills
+        </button>
+        
+        <div class="status-display" id="statusDisplay">
+            STATUS: NEURAL_SCANNER_READY
+        </div>
+    </div>
+
+    <script>
+        let isScanning = false;
+
+        function startScan() {
+            if (isScanning) return;
+            
+            isScanning = true;
+            const target = document.getElementById('scanTarget');
+            const button = document.getElementById('scanButton');
+            const status = document.getElementById('statusDisplay');
+            const skillsContainer = document.getElementById('skillsContainer');
+            const skillItems = document.querySelectorAll('.skill-item');
+            
+            // Reset skills
+            skillItems.forEach(skill => {
+                skill.classList.remove('revealed');
+            });
+            
+            // Update UI
+            button.disabled = true;
+            button.textContent = 'SCANNING...';
+            status.textContent = 'STATUS: INITIATING_NEURAL_SCAN';
+            
+            // Start scanning animation
+            target.classList.add('scanning');
+            
+            // Scanning sequence with status updates
+            setTimeout(() => {
+                status.textContent = 'STATUS: ANALYZING_NEURAL_PATTERNS';
+            }, 1000);
+            
+            setTimeout(() => {
+                status.textContent = 'STATUS: DETECTING_SKILL_SIGNATURES';
+            }, 2500);
+            
+            setTimeout(() => {
+                status.textContent = 'STATUS: SKILLS_DETECTED';
+            }, 3500);
+            
+            // Reveal skills one by one after container appears
+            setTimeout(() => {
+                skillItems.forEach((skill, index) => {
+                    setTimeout(() => {
+                        skill.classList.add('revealed');
+                    }, index * 150);
+                });
+            }, 4000);
+            
+            // Complete scan after 6 seconds
+            setTimeout(() => {
+                target.classList.remove('scanning');
+                button.disabled = false;
+                button.textContent = 'Scan Again';
+                status.textContent = 'STATUS: SKILL_DETECTION_COMPLETE';
+                isScanning = false;
+                
+                // Reset after a moment
+                setTimeout(() => {
+                    button.textContent = 'Detect Skills';
+                    status.textContent = 'STATUS: NEURAL_SCANNER_READY';
+                }, 3000);
+            }, 6000);
+        }
+
+        // Auto-start demo after page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                startScan();
+            }, 1500);
+        });
+
+        // Click target to scan
+        document.getElementById('scanTarget').addEventListener('click', startScan);
+    </script>
+</body>
+</html>
